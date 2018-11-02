@@ -1,6 +1,7 @@
-authors = ["Kevin Atteson <kevin@atteson.com>"]
 name = "GCTools"
 uuid = "85ef0494-dded-11e8-3885-61befe3cff66"
+authors = ["Kevin Atteson <kevin@atteson.com>"]
 version = "0.1.0"
 
 [deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
