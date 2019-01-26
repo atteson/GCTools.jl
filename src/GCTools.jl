@@ -2,40 +2,58 @@ module GCTools
 
 using DataStructures
 
+const maxstacksize = 100
+
 gccount( gc ) = gc.malloc + gc.realloc + gc.poolalloc + gc.bigalloc
 gctic() = gccount( Base.gc_num() )
 
 mutable struct Counter
     counts::OrderedDict{Symbol,UInt}
-    current::Union{Symbol,Nothing}
+    stack::Vector{Symbol}
+    n::Int
 end
 
-Counter() = Counter( OrderedDict{Symbol,UInt}(), nothing )
+Counter() = Counter( OrderedDict{Symbol,UInt}(), fill( Symbol(), maxstacksize ), 1 )
 
 const counter = Counter()
 
 function reset()
     counter.counts = OrderedDict{Symbol,UInt}()
-    counter.current = nothing
+    counter.stack = fill( Symbol(), maxstacksize )
+    counter.n = 1
 end
 
-function checkpoint( s::Symbol )
+function push!( s::Symbol )
     count = gctic()
-    if counter.current != nothing
-        counter.counts[counter.current] += count
+    if counter.n > 1
+        counter.counts[counter.stack[counter.n-1]] += count
     end
-    counter.current = s
+    counter.stack[counter.n] = s
     counter.counts[s] = get( counter.counts, s, 0 ) - count
+    counter.n += 1
 end
 
-function checkpoint()
-    counter.counts[counter.current] += gctic()
-    counter.current = nothing
+function pop!()
+    counter.n -= 1
+    count = gctic()
+    counter.counts[counter.stack[counter.n]] += count
+    if counter.n > 1
+        counter.counts[counter.stack[counter.n-1]] -= count
+    end
+    return counter.stack[counter.n]
+end
+
+function replace!( s::Symbol )
+    if counter.n > 1
+        last = pop!()
+    end
+    push!( s )
+    return last
 end
 
 function print()
-    if counter.current != nothing
-        counter.counts[counter.current] += gctic()
+    for i = (counter.n-1):-1:1
+        counter.counts[counter.stack[i]] += gctic()
     end
     for (k,v) in counter.counts
         println( "Count for $k: $v" )
