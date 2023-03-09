@@ -8,17 +8,17 @@ gccount( gc ) = gc.malloc + gc.realloc + gc.poolalloc + gc.bigalloc
 gctic() = gccount( Base.gc_num() )
 
 mutable struct Counter
-    counts::OrderedDict{Symbol,UInt}
+    counts::OrderedDict{Symbol,Int}
     stack::Vector{Symbol}
     n::Int
 end
 
-Counter() = Counter( OrderedDict{Symbol,UInt}(), fill( Symbol(), maxstacksize ), 1 )
+Counter() = Counter( OrderedDict{Symbol,Int}(), fill( Symbol(), maxstacksize ), 1 )
 
 const counter = Counter()
 
 function reset()
-    counter.counts = OrderedDict{Symbol,UInt}()
+    counter.counts = OrderedDict{Symbol,Int}()
     counter.stack = fill( Symbol(), maxstacksize )
     counter.n = 1
 end
